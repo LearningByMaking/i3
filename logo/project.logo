@@ -1,17 +1,23 @@
-to jProject :n
+to jProject :n 
   make "project-name :n
   let [sdate bl exec "date]
-  print (se "|Start Project: | :n "|   | :sdate "|  unix time: | now ) 
+  if not(:silent  = "true)
+  [
+     print (se "|Start Project: | :n "|   | :sdate "|  unix time: | now ) 
+  ]
   load :n
   make "debug-flag false
   jlogo
   make "machine 1
 end
 
-to project :n
+to project :n 
   make "project-name :n
   let [sdate bl exec "date]
-  print (se "|Start Project: | :n "|   | :sdate "|  unix time: | now ) 
+  if not(:silent  = "true)
+  [
+     print (se "|Start Project: | :n "|   | :sdate "|  unix time: | now ) 
+  ]
   load :n
   make "debug-flag false
   ulogo
@@ -21,6 +27,7 @@ end
 to startup
   blindexec "| ln -s /usr/local/i3/logo/ . |
   print "|Welcome to Logo|
+  make "silent false
 end
 
 to jLogo-nodot
@@ -62,9 +69,13 @@ define hb [n][output hexw logand $ff :n 2]
 define hw [n][output hexw logand $ffff :n 4]
 define .word [a b][output intern word :a :b]
 
-to rr 
-  ifelse :run-ulogo [ulogo][jlogo]
+to rr   
+  make "silent true
+  ifelse :run-ulogo
+  [project :project-name]
+  [jproject :project-name]
   print "|project reloaded|
+  make "silent false
 end
 
 to edit :n
