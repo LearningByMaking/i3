@@ -19,6 +19,7 @@ to project :n
 end
 
 to startup
+  blindexec "| ln -s /usr/local/i3/logo/ . |
   print "|Welcome to Logo|
 end
 

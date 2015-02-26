@@ -62,7 +62,7 @@ define hw [n][output hexw logand $ffff :n 4]
 define .word [a b][output intern word :a :b]
 
 to rr 
-  ifelse :run-ulogo [project :project-name][jproject :project-name]
+  ifelse :run-ulogo [ulogo][jlogo]
   print "|project reloaded|
 end
 
