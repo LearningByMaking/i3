@@ -1,0 +1,492 @@
+;#############################################
+;   DATA HANDLING
+;#############################################
+to save-xycol :n
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  prfopen :n
+  repeat (count :dx) 
+    [ prfprint se nth 0 :dx nth 0 :dy
+      make "dx bf :dx 
+      make "dy bf :dy
+      ]
+  prfclose
+end
+
+to save-data :n     ; data must be in :data-list
+  let [d :data-list]
+  blindexec word "|rm | :n
+  prfopen :n
+  prfprint :ncol
+  repeat (count :d) 
+    [prfprint nth 0 :d
+     make "d bf :d
+    ]
+  prfclose
+end
+
+to restore-data :n
+  make "data-list parse filetostring :n
+  make "ncol nth 0 :data-list
+  make "data-list bf :data-list
+  
+end
+
+to select-data :n :m
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  let [tdx []]
+  let [tdy []]
+  repeat (count :dx) [
+    if and ((nth 0 :dx) > (:n )) ((nth 0 :dx) < (:m ))
+      [
+      make "tdx (se :tdx (nth 0 :dx))
+      make "tdy (se :tdy (nth 0 :dy))
+      ]
+      make "dx bf :dx
+      make "dy bf :dy
+  ]
+    make "xcol-data :tdx
+    make "ycol-data :tdy
+end
+
+to select-all
+  select-data -1 32766
+end
+
+to show-select
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  repeat (count :dx) [ 
+      print se nth 0 :dx nth 0 :dy
+      make "dx bf :dx 
+      make "dy bf :dy       
+      ]
+end
+
+
+to xcol :n
+  let [d :data-list]
+  let [cnt (count :d ) / :ncol]
+  make "xcol-data []
+  repeat :cnt [
+    make "xcol-data (se :xcol-data nth (:n - 1) :d)
+    repeat :ncol [make "d bf :d] ; "removes :ncol number of entries
+  ]
+end
+
+to ycol :n
+  let [d :data-list]
+  let [cnt (count :d ) / :ncol]
+  make "ycol-data []
+  repeat :cnt [
+    make "ycol-data (se :ycol-data nth (:n - 1) :d)
+    repeat :ncol [make "d bf :d] ; "removes :ncol number of entries
+  ]
+end
+
+
+to add-data :n :m
+  make "data-list (se :data-list :n :m)
+end
+
+to init-data
+  make "data-list []
+  make "xcol-data []
+  make "ycol-data []
+end
+
+to show-data
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  repeat (count :dx)  
+    [ print se nth 0 :dx nth 0 :dy
+      make "dx bf :dx
+      make "dy bf :dy
+       ]
+end
+
+;#############################################
+;     STATISTICS
+;#############################################
+to average
+  let [d :ycol-data]
+  let [value 0]
+  let [sum 0]
+  let [avg 0]
+  let [cnt (count :d)]
+  repeat :cnt [
+    make "value  nth 0 :d
+    make "sum  :sum + :value 
+    make "d bf :d ]
+  make "avg :sum / :cnt
+  output :avg
+end
+
+to ymaximum
+  let [d :ycol-data]
+  let [cnt (count :d)]
+  let [value 0]
+  let [maxval nth 0 :d]
+  repeat :cnt [
+    make "value  nth 0 :d
+    if (:value > :maxval) [ make "maxval :value ]
+    make "d bf :d ]
+  output :maxval
+end
+
+to xmaximum
+  let [d :xcol-data]
+  let [cnt (count :d)]
+  let [value 0]
+  let [xmaxval nth 0 :d]
+  repeat :cnt [
+    make "value  nth 0 :d
+    if (:value > :xmaxval) [ make "xmaxval :value ]
+    make "d bf :d ]
+  output :xmaxval
+end
+
+
+to yminimum
+  let [d :ycol-data]
+  let [cnt (count :d)]
+  let [value 0]
+  let [minval nth 0 :d]
+  repeat :cnt [
+    make "value  nth 0 :d
+    if (:value < :minval) [ make "minval :value ]
+    make "d bf :d ]
+  output :minval
+end
+
+
+to xminimum
+  let [d :xcol-data]
+  let [cnt (count :d)]
+  let [value 0]
+  let [xminval nth 0 :d]
+  repeat :cnt [
+    make "value  nth 0 :d
+    if (:value < :xminval) [ make "xminval :value ]
+    make "d bf :d ]
+  output :xminval
+end
+
+
+to stddev
+  let [std 0]
+  let [d :ycol-data]
+  let [value 0]
+  let [sumsqr 0]
+  let [avg average]
+  let [var 0]
+  let [cnt (count :d)]
+  repeat :cnt [
+    make "value  ((nth 0 :d) - :avg)
+    make "sumsqr  :sumsqr + (:value * :value)  
+    make "d bf :d ]
+  make "std sqrt (:sumsqr / :cnt)
+  output :std
+end
+
+to stddev-mean
+  let [std 0]
+  let [d :ycol-data]
+  let [value 0]
+  let [sumsqr 0]
+  let [avg average]
+  let [var 0]
+  let [cnt (count :d)]
+  let [std-mean 0]
+  repeat :cnt [
+    make "value  ((nth 0 :d) - :avg)
+    make "sumsqr  :sumsqr + (:value * :value)  
+    make "d bf :d ]
+
+  make "std sqrt (:sumsqr / :cnt)
+  make "std-mean :std / sqrt (:cnt)
+  output :std-mean
+end
+
+to two-digit :n
+output (((round (100 * (:n + 1))) / 100) - 1.001)
+end
+
+to four-digit :n
+output (((round (10000 * (:n + 1))) / 10000) - 1.00001)
+end
+
+
+to analyze 
+  print se "|N               | (count :ycol-data)
+  print se "|average         | (four-digit average)
+  print se "|stddev          | (four-digit stddev)
+  print se "|stddev/sqrt(N)  | (four-digit stddev-mean)
+  print se "|maximum        | (four-digit ymaximum)
+  print se "|minimum        | (four-digit yminimum)
+
+end
+;"
+;#############################################"
+;       PLOTTING
+;#############################################"
+to plot-data 
+;## initialize data ##;
+  xcol 1
+  ycol 2
+  select-data 10 300
+
+;## initialize plot screen ##;
+  setup-screen
+  limits xlower xupper ylower yupper
+  clean
+  grid 10 10
+  box
+  xaxis 10 1
+  yaxis 10 1
+  title "|ADC Values versus Time| 
+  xlabel "|Time (seconds)| 
+  ylabel "ADC 
+
+;## setup the plotting style ##;
+  ltype 0 
+  connect
+  ptype 2 
+  points
+  errorbars 0
+  fit-line
+
+;## Draw the plot ##;
+  blindexec "|pkill eog|
+  wait 10
+  redraw
+  ;blindexec "|eog -gn screen.png|
+  blindexec "|open -a /Applications/Preview.app screen.png|
+end
+
+
+to ptype :n
+  make "val-ptype :n
+end
+
+to points 
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  let [xx0 0]
+  let [yy0 0]
+  make "xx0 nth 0 :dx 
+  make "yy0 nth 0 :dy
+  moveto :xx0 :yy0
+  moveto nth 0 :dx nth 0 :dy
+  repeat (count :dx) [ 
+     make "xx0 nth 0 :dx 
+     make "yy0 nth 0 :dy
+
+     if (:val-ptype = 0) [drawstring "| | :xx0 :yy0]
+     if (:val-ptype = 1) [drawstring "|.| :xx0 :yy0]
+     if (:val-ptype = 2) [drawstring "|o| :xx0 :yy0]
+     if (:val-ptype = 3) [drawstring "|x| :xx0 :yy0]   
+     make "dx bf :dx
+     make "dy bf :dy
+      ]    ;"
+end
+
+
+to ltype :n
+  make "val-ltype :n ; " setting the linestyle for plots
+end
+
+
+to connect
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  let [xx0 0]
+  let [yy0 0]
+  setcolor 0
+  make "xx0 nth 0 :dx 
+  make "yy0 nth 0 :dy
+  moveto :xx0 :yy0
+  moveto nth 0 :dx nth 0 :dy
+  repeat (count :dx) [ 
+     make "xx0 nth 0 :dx 
+     make "yy0 nth 0 :dy
+     if (:val-ltype = 1) [lineto :xx0 :yy0]
+     if (:val-ltype = 2) [dashedlineto :xx0 :yy0]
+     if (:val-ltype = 3) [dotdashedlineto :xx0 :yy0]
+     make "dx bf :dx 
+     make "dy bf :dy
+    ]
+end
+
+to histogram ; NOT AT ALL A HISTOGRAM BAD NAME
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  let [xmid 0]
+  let [ymid 0]
+  let [xx0 0]
+  let [yy0 0]
+  setpensize 8
+  make "xx0 nth 0 :dx 
+  make "yy0 nth 0 :dy
+  moveto :xx0 :yy0
+  repeat (count :dx) 
+     [
+      make "xmid ((nth 0 :dx) + :xx0) / 2
+      make "ymid ((nth 0 :dy) + :yy0) / 2 
+      lineto  :xmid :yy0
+      ; print se :xmid :yy0
+      make "xx0 nth 0 :dx
+      make "yy0 nth 0 :dy 
+      lineto :xmid :yy0
+      ; print se :xmid :yy0
+      lineto :xx0 :yy0
+      ;print se :xx0 :yy0
+      make "dx bf :dx
+      make "dy bf :dy
+       ]
+end
+
+to errorbars :n
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  let [xx0 0]
+  let [yy0 0]
+  setcolor 0
+  make "xx0 nth 0 :dx 
+  make "yy0 nth 0 :dy
+  moveto :xx0 :yy0
+  moveto nth 0 :dx nth 0 :dy
+  repeat (count :dx) [ 
+     make "xx0 nth 0 :dx 
+     make "yy0 nth 0 :dy
+     moveto :xx0 :yy0
+     lineto :xx0  (:yy0 + :n)
+     lineto :xx0 (:yy0 - :n)
+     make "dx bf :dx
+     make "dy bf :dy
+      ]  ;"
+     redraw   
+end
+
+; This word creates a least-squares fit to the selected
+; data and prints the equation
+to fit-line
+  let [dx :xcol-data]
+  let [dy :ycol-data]
+  let [sumx 0]
+  let [sumy 0]
+  let [sumxy 0]
+  let [sumx2 0]
+  let [sumy2 0]
+  let [xmean 0]
+  let [ymean 0]
+  let [xval 0]
+  let [yval 0]
+  let [slope 0]
+  let [yint 0]
+  let [xmin xminimum]
+  let [xmax xmaximum]
+  let [ymax ymaximum]
+
+  let [cnt (count :dx)]
+  repeat :cnt [
+      make "xval nth 0 :dx
+      make "yval nth 0 :dy
+      make "sumx :sumx + :xval
+      make "sumy :sumy + :yval
+      make "sumxy :sumxy + (:xval * :yval)
+      make "sumx2 :sumx2 + (:xval * :xval)
+      make "sumy2 :sumy2 + (:yval * :yval)
+      make "dx bf :dx
+      make "dy bf :dy
+      ];"
+  make "xmean :sumx / :cnt
+  make "ymean :sumy / :cnt
+  make "slope ((:sumxy - :sumx * :ymean) / (:sumx2 - :sumx * :xmean))
+  make "yint (:ymean - :slope * :xmean) 
+  moveto :xmin (:slope * :xmin + :yint)
+  ; dotdashedlineto :xmax (:slope * :xmax + :yint)
+  lineto :xmax (:slope * :xmax + :yint)
+  moveto :xmax (:ymax - :yint)
+  setpensize 2
+  setcolor 0 
+  make "intlabel "|y-int |
+  make "slabel "|slope |
+  make "intlabel2 round :yint
+  make "slabel2 round :slope
+    ;drawstring :intlabel :xmax   (:yint + (:ymax - :yint) / 2)
+    ;drawstring :intlabel2 :xmax + 1  (:yint + (:ymax - :yint) / 2)
+
+    ;drawstring :slabel :xmax (:yint + (:ymax - :yint) / 2) - 20
+    ;drawstring :slabel2 :xmax + 1 (:yint + (:ymax - :yint) / 2) - 20
+
+  redraw
+  output :slope
+end
+
+; sine wave with period of 100 sec
+to sin-wave
+init-data
+select-all
+let [cnt 0]
+let [d :data-list]
+repeat 101 [
+            add-data :cnt  sin ( 360.0 * :cnt / 100 )
+            make "cnt :cnt + 1
+           ] 
+plot-sine
+end 
+
+to plot-sine
+ltype 0
+sin-wave
+select-all
+limits 0 100 -1.0 1.0
+clean
+grid 10 10
+box
+xaxis 10  1
+yaxis 10 10
+title "|Sine Wave|
+xlabel "|Time (seconds)|
+ylabel "Sin
+connect
+redraw
+blindexec "|eog -gn screen.png|
+; blindexec "|open -a /Applications/Preview.app screen.png|
+end
+
+to bin :n :m :p
+  let [val :n]
+  make "xcol-data []
+  repeat (:m - :n) / :p [
+    make "xcol-data se :xcol-data :val
+    make "val :val + :p
+    ]
+end
+
+to hist :n
+let [len count :xcol-data]
+let [bin 0]
+let [low nth 0 :xcol-data]
+let [lendata count :n]
+let [high nth (:len - 1) :xcol-data]
+let [cnt 0]
+let [val 0]
+
+make "ycol-data []
+repeat :len [make "ycol-data se :ycol-data 0.0]
+repeat :lendata [
+   make "bin  (((nth :cnt :n) - :low) / (:high - :low)) * :len
+   make "bin round :bin
+     if  and (:bin > 0) (:bin < :len) [
+       make "val  nth :bin :ycol-data
+       make "val  :val + 1
+       setnth :bin :ycol-data :val
+       make "cnt :cnt + 1
+     ]
+   ]
+end
+
+    

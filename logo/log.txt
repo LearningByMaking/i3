@@ -1,0 +1,4 @@
+  Welcome to Logo
+project "BasicBoard
+  Start Project:  BasicBoard     Wed Feb 25 13:28:13 PST 2015   unix time:  1424899693697
+  Can't open file BasicBoard.logo in project

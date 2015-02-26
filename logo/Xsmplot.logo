@@ -1,0 +1,446 @@
+to save-data :n
+let [d :data-list]
+prfopen :n
+repeat (count :d) / 2 
+  [ prfprint se nth 0 :d nth 1 :d
+    make "d bf bf :d ]
+prfclose
+end
+
+to restore-data :n
+make "data-list parse filetostring :n
+end
+
+to select-data :n :m
+make "select-list []
+let [d :data-list]
+repeat (count :d) / 2 [
+  if and ((nth 0 :d) > :n) ((nth 0 :d) < :m)
+          [make "select-list (se :select-list (nth 0 :d) (nth 1 :d))] 
+  make "d bf bf :d ]
+end
+
+to select-all
+  select-data -1 32760
+end
+
+to show-select
+let [d :select-list]
+repeat (count :d) / 2 
+  [ print se nth 0 :d nth 1 :d
+    make "d bf bf :d ]
+end
+
+to N
+output (count :select-list) / 2
+end
+
+to average
+let [d :select-list]
+let [value 0]
+let [sum 0]
+let [avg 0]
+let [cnt (count :d) / 2]
+repeat :cnt [
+  make "value  nth 1 :d
+  make "sum  :sum + :value 
+  make "d bf bf :d ]
+make "avg :sum / :cnt
+output :avg
+end
+
+to rms
+let [d :select-list]
+let [value 0]
+let [sumsqr 0]
+let [avg average]
+let [var 0]
+let [cnt (count :d) / 2]
+repeat :cnt [
+  make "value  ((nth 1 :d) - :avg)
+  make "sumsqr  :sumsqr + (:value * :value)  
+  make "d bf bf :d ]
+
+make "var sqrt (:sumsqr / :cnt)
+output :var
+end
+
+to maximum
+let [d :select-list]
+let [cnt (count :d) / 2]
+let [value 0]
+let [maxval nth 1 :d]
+repeat :cnt [
+  make "value  nth 1 :d
+  if (:value > :maxval) [ make "maxval :value ]
+  make "d bf bf :d ]
+output :maxval
+end
+
+to xmaximum
+let [d :select-list]
+let [cnt (count :d) / 2]
+let [value 0]
+let [maxval nth 0 :d]
+repeat :cnt [
+  make "value  nth 0 :d
+  if (:value > :maxval) [ make "maxval :value ]
+  make "d bf bf :d ]
+output :maxval
+end
+
+
+to minimum
+let [d :select-list]
+let [cnt (count :d) / 2]
+let [value 0]
+let [minval nth 1 :d]
+repeat :cnt [
+  make "value  nth 1 :d
+  if (:value < :minval) [ make "minval :value ]
+  make "d bf bf :d ]
+output :minval
+end
+
+to xminimum
+let [d :select-list]
+let [cnt (count :d) / 2]
+let [value 0]
+let [minval nth 0 :d]
+repeat :cnt [
+  make "value  nth 0 :d
+  if (:value < :minval) [ make "minval :value ]
+  make "d bf bf :d ]
+output :minval
+end
+
+to analyze
+print se "|N pts     | N 
+print se "|average   | average
+print se "|rms       | rms
+print se "|rms mean  | rms / sqrt (N)
+print se "|maximum   | maximum
+print se "|minimum   | minimum
+end
+
+to ylower
+output 10 * round ((minimum - 5) / 10)
+end
+
+to yupper
+output 10 * round ((maximum + 5) / 10)
+end
+
+to xlower
+output 10 * round ((xminimum - 5) / 10)
+end
+
+to xupper
+output 10 * round ((xmaximum + 5) / 10)
+end
+
+to xgrid
+output 10 * round ((xupper - xlower + 5) / 10)
+end
+
+to ygrid
+output 10 * round ((yupper - ylower + 5) / 10)
+end
+
+to setup-screen
+make "wwwaddr "screen.png
+newimage 800 600
+clean
+limits -1 1 -1 1
+setpensize 4
+setfont "courier 20 0
+end
+
+to connect
+let [d :select-list]
+let [xx0 0]
+let [yy0 0]
+setcolor 0
+make "xx0 nth 0 :d 
+make "yy0 nth 1 :d
+moveto :xx0 :yy0
+moveto nth 0 :d nth 1 :d
+repeat (count :d) / 2 [ 
+   make "xx0 nth 0 :d 
+   make "yy0 nth 1 :d
+   lineto :xx0 :yy0
+   make "d bf bf :d ]
+end
+
+to histogram
+let [d :select-list]
+let [xmid 0]
+let [ymid 0]
+let [xx0 0]
+let [yy0 0]
+make "xx0 nth 0 :d 
+make "yy0 nth 1 :d
+setcolor 0
+moveto :xx0 :yy0
+repeat (count :d) / 2 
+   [
+    make "xmid ((nth 0 :d) + :xx0) / 2
+    make "ymid ((nth 1 :d) + :yy0) / 2 
+    lineto  :xmid :yy0
+    ; print se :xmid :yy0
+    make "xx0 nth 0 :d
+    make "yy0 nth 1 :d 
+    lineto :xmid :yy0
+    ; print se :xmid :yy0
+    lineto :xx0 :yy0
+    ;print se :xx0 :yy0
+    make "d bf bf :d ]
+end
+
+to xlabel :n
+setpensize 2
+setcolor 0
+make "xl :n 
+drawstring :xl :x0 + 0.45 * (:x1 - :x0)      :y0 - 0.15 * (:y1 - :y0)
+end
+
+to ylabel :n
+setpensize 2
+setcolor 0
+make "yl :n
+drawstring :yl :x0 - 0.12 * (:x1 - :x0)      :y0 + 0.55 * (:y1 - :y0)
+end
+
+to title :n
+setpensize 2
+setcolor 0
+make "tl :n 
+drawstring :tl :x0 + 0.45 * (:x1 - :x0)      :y1 + 0.12 * (:y1 - :y0)
+end
+
+to xticks :n :m
+let [cnt 0]
+let [xoff 0]
+let [yoff :y0 - 0.05 * (:y1 - :y0)]
+repeat :n + 1 [
+           make "xoff :x0 + (:cnt / :n) * (:x1 - :x0)
+           drawstring (se (round (:m * :xoff) + 0.1) / :m) :xoff :yoff
+           make "cnt :cnt + 1
+          ]
+end
+ 
+to yticks :n :m
+let [cnt 0]
+let [yoff 0]
+let [xoff :x0 - 0.05 * (:x1 - :x0)]
+repeat :n + 1 [
+           make "yoff :y0 + (:cnt / :n) * (:y1 - :y0)
+           drawstring (se (round (:m * :yoff) + 0.1) / :m) :xoff :yoff
+           make "cnt :cnt + 1
+          ]
+end 
+  
+to xaxis :n :m 
+ xticks :n :m 
+end
+
+to yaxis :n :m 
+ yticks :n :m 
+end
+
+to box
+ setpensize 1
+ setcolor 0
+ moveto :x0 :y0
+ lineto :x1 :y0
+ lineto :x1 :y1
+ lineto :x0 :y1
+ lineto :x0 :y0
+end 
+
+
+; concatenates the next pair (time, value) from ulogo
+to data :n :m
+print (se "time :n "value :m)
+make "data-list (se :data-list :n :m)
+plot-data
+end
+
+; concatenates the next pair (time, value) from jlogo
+to add-data :n :m
+make "data-list (se :data-list :n :m)
+end
+
+; concatenates the next pair (time, value) from jlogo
+to add-data2 :n :m :p
+make "data-list (se :data-list :n :m :p)
+end
+
+to init-data
+make "data-list []
+setup-screen
+end
+
+to show-data
+let [d :data-list]
+repeat (count :d) / 2 
+  [ print se nth 0 :d nth 1 :d
+    make "d bf bf :d ]
+end
+
+; sine wave with period of 100 sec
+to sin-wave
+init-data
+select-all
+let [cnt 0]
+let [d :data-list]
+repeat 101 [
+            add-data :cnt  sin ( 360.0 * :cnt / 100 )
+            make "cnt :cnt + 1
+           ] 
+plot-sine
+end 
+
+
+to plot-data
+select-all
+limits xlower xupper ylower yupper
+clean
+grid 10 10
+box
+xaxis 10 1
+yaxis 10 1
+title "|ADC Values versus Time|
+xlabel "|Time (seconds)|
+ylabel "ADC
+histogram
+; blindexec "|pkill eog|
+wait 10
+redraw
+; blindexec "|eog -gn screen.png|
+end
+
+to plot-sine
+select-all
+limits 0 100 -1.0 1.0
+clean
+grid 10 10
+box
+xaxis 10  1
+yaxis 10 10
+title "|Sine Wave|
+xlabel "|Time (seconds)|
+ylabel "Sin
+connect
+redraw
+; blindexec "|eog -gn screen.png|
+end
+
+to data2 :n :m :p
+print (se "time :n "values :m :p)
+make "data-list (se :data-list :n :m :p)
+end
+
+
+;________________________________________________
+; the next words are needed to use the data as triples
+;     time value1 value2
+; these words could be added to either addons.logo  or  smplot.logo (not both)
+
+to show-data2
+let [d :data-list]
+repeat (count :d) / 3 
+  [ print se (se nth 0 :d nth 1 :d) nth 2 :d
+    make "d bf bf bf :d ]
+end
+
+to save-data2 :n
+let [d :data-list]
+prfopen :n
+repeat (count :d) / 3 
+  [ prfprint se (se nth 0 :d nth 1 :d) nth 2 :d
+    make "d bf bf bf :d ]
+prfclose
+end
+
+to restore-data2 :n
+make "data-list parse filetostring :n
+end
+
+to select-data2A :n :m
+make "select-list []
+let [d :data-list]
+repeat (count :d) / 3 [
+  if and ((nth 0 :d) > :n) ((nth 0 :d) < :m)
+          [make "select-list (se :select-list (nth 0 :d) (nth 1 :d))] 
+  make "d bf bf bf :d ]
+end
+
+to select-data2B :n :m
+make "select-list []
+let [d :data-list]
+repeat (count :d) / 3 [
+  if and ((nth 0 :d) > :n) ((nth 0 :d) < :m)
+          [make "select-list (se :select-list (nth 0 :d) (nth 2 :d))] 
+  make "d bf bf bf :d ]
+end
+
+to plot-data2A
+make "wwwaddr "screen1.png
+select-data2A -1 32000
+limits xlower xupper ylower yupper
+clean
+grid 10 10
+xaxis 10 1
+yaxis 10 1
+title "|ADC Values versus Time|
+xlabel "|Time (seconds)|
+ylabel "ADC
+histogram
+box
+; blindexec "|pkill eog|
+wait 10
+redraw
+
+; if (:wwwaddr = "|screen.png|)  [blindexec "|eog -gn screen.png|]
+; if (:wwwaddr = "|screen1.png|) [blindexec "|eog -gn screen1.png|] 
+; if (:wwwaddr = "|screen2.png|) [blindexec "|eog -gn screen2.png|]
+
+end
+
+to plot-data2B
+make "wwwaddr "screen2.png
+select-data2B -1 32000
+limits xlower xupper ylower yupper
+clean
+grid 10 10
+xaxis 10 1
+yaxis 10 1
+title "|ADC Values versus Time|
+xlabel "|Time (seconds)|
+ylabel "ADC
+histogram
+box
+; blindexec "|pkill eog|
+wait 10
+redraw
+
+; if (:wwwaddr = "|screen.png|)  [blindexec "|eog -gn screen.png|]
+; if (:wwwaddr = "|screen1.png|) [blindexec "|eog -gn screen1.png|] 
+; if (:wwwaddr = "|screen2.png|) [blindexec "|eog -gn screen2.png|]
+
+end
+
+
+; example of how to use these words
+; use send-data2 to collect the data in triples (time value1 value2)
+; save-data2 "datafile.txt      will save the data as triples
+; if you saved the data with   save-data "datafile.txt   (as doubles)
+; you can use  restore-data "datafile.txt  followed by  
+; save-data2 "datafile.txt  to fix the file (doubles to triples)
+;
+; plot-data2A     will plot the data    time value1
+; plot-data2B     will plot the data    time value2
+
+
+

@@ -1,0 +1,207 @@
+
+to jproject :n
+  make "project-name :n
+  let [sdate bl exec "date]
+  print (se "|Start Project: | :n "| | :sdate) 
+  print (se "|Start Project: | :n "|  unix time: | now ) 
+  startup
+  load :n
+  make "debug-flag false
+  jLogo
+  make "machine 1  ; OSX or HPstream11
+end
+
+to project :n
+  make "project-name :n
+  let [sdate bl exec "date]
+  print (se "|Start Project: | :n "|   | :sdate "|  unix time: | now ) 
+  load :n
+  make "debug-flag false
+  ulogo
+  make "machine 1
+end
+
+
+to startup
+  print "|Welcome of Logo|
+end
+
+to dw
+ output "|-geometry 640x480+800+10|
+end
+
+to edit :n :m
+  ifelse :jlogo-flag
+      [ 
+        print (se "|gedit | "| | :m "| | word :n "|.logo|)
+        blindexec (se "|gedit | "| | :m "| | word :n "|.logo +1|)]  ; add .logo
+      [ blindexec (se "|gedit | :n "| -g | :m)] 
+end
+
+to ledit :n
+  blindexec (se "gedit word :n "|.logo|)
+end
+
+to dprint :n
+  if :debug-flag [ print :n ]
+end
+
+to debug :n
+  make "debug-flag :n
+end
+
+to jLogo
+  make "run-ulogo false
+  jLogo-dot
+  load "logo/screen
+  load "logo/smplot
+end
+ 
+to uLogo
+  make "run-ulogo true
+  sethandleline true   ; dot needed for jLogo words - with ulogo code
+  make "heartbeat true
+  print (se "|Opening Project | :project-name)
+  load "logo/compiler
+  load "logo/decompiler
+  load "logo/uartcomms
+  load "logo/screen
+  load "logo/smplot
+  load "logo/onewire-packets
+  make "onewire true
+  load :project-name
+  if not name? "inited [make "inited true compiler-startup start-comms]
+  make "srcpath word dirnamefrompath first files ". "/
+  make "srcfile word :project-name "|.prj|
+  compile ;we don't need to compile
+end
+
+to limit :n :min :max                ; general min and max limits for boundary effects
+ if :n < :min [output :min]          ; :n too small replace with :min
+ if :n > :max [output :max]          ; :m too large replace with :max
+ output :n                           ; return value within the limits
+end
+
+to x-data :n :m
+  make "xname :n
+  make "xcol-data :m
+end
+
+to y-data :n :m
+  make "yname :n
+  make "ycol-data :m
+end
+
+to plot :s
+setup-screen
+clean
+select-all
+
+limits xlower xupper ylower yupper 
+grid 10 10
+box
+xaxis 10  1
+yaxis 10  1
+
+if :s = 0 [ histogram ]
+if :s = 1 [ connect ]
+if :s = 2 [ ptype 2 points ]
+
+title (se :yname "versus :xname)
+xlabel :xname
+; ylabel :yname
+
+end
+
+; "|-geometry 600x400+1000+100|  example for value of :n
+to display :n
+ if (:machine = 1) [ wait 10 redraw wait 10                                   ; Mac OSX
+                     blindexec (se "|xv | :n "| screen.png|) 
+end
+
+to clear-display
+  if (:machine = 1) [ wait 10 blindexec "|pkill.sh xv| wait 10 ]
+end
+
+to cUp :n
+  print (word char 27 "|[| :n [|A|])
+end
+
+to cDown :n
+  print (word char 27 "|[| :n [|B|])
+end
+
+to cForward :n
+  print (word char 27 "|[| :n [|C|])
+end
+
+to cBackward :n
+  print (word char 27 "|[| :n [|D|])
+end
+
+to printrc :r :c :str                                 ; puts cursor at row :r  column :c
+; print (word char 27 "|[| :r + 1 char 59 :c + 1 [|H|]
+print (word char 27 "|[| :r + 1 char 59 :c + 2 [|H|]
+            :str)
+end
+
+to Xclr-line :l                                   ; clears a line of old chars
+print (word char 27 "|[| :l + 1 char 59 [|1H|]
+            char 27 [|[2K|]])
+end
+
+to clr-screen :n                                 ; clears the entire screen :n lines long
+dotimes [i :n][clr-line :i]
+end 
+
+to display-cam :n
+;  print "avconv
+  blindexec "|rm cam.jpg|
+  wait 5
+  blindexec "|pkill.sh avconv|
+  wait 5
+  blindexec "|avconv -f video4linux2 -s 640x480 -i /dev/video1 -ss 0:0:2 -frames 1 cam.jpg|
+  wait 200
+;  print "pkill
+  blindexec "|pkill.sh xv|
+  wait 100
+; print "xv
+  blindexec (se "|xv | :n "| cam.jpg|)
+  wait 100
+end
+
+
+; notes onn VT100  screen commands
+;
+;Cursor Home 		<ESC>[{ROW};{COLUMN}H
+;Sets the cursor position where subsequent text will begin. 
+; If no row/column parameters are provided (ie. <ESC>[H), 
+; the cursor will move to the home position, ;at the upper left of the screen.
+;
+;Cursor Up		<ESC>[{COUNT}A
+;Moves the cursor up by COUNT rows; the default count is 1.
+;
+;Cursor Down		<ESC>[{COUNT}B
+;Moves the cursor down by COUNT rows; the default count is 1.
+;
+;Cursor Forward		<ESC>[{COUNT}C
+;Moves the cursor forward by COUNT columns; the default count is 1.
+;
+;Cursor Backward		<ESC>[{COUNT}D
+;Moves the cursor backward by COUNT columns; the default count is 1.
+;
+;Force Cursor Position	<ESC>[{ROW};{COLUMN}f
+;Identical to Cursor Home.
+;
+;Save Cursor		<ESC>[s
+;Save current cursor position.
+;
+;Unsave Cursor		<ESC>[u
+;Restores cursor position after a Save Cursor.
+;
+;Save Cursor & Attrs	<ESC>7
+;Save current cursor position.
+;
+;Restore Cursor & Attrs	<ESC>8
+;Restores cursor position after a Save Cursor.
+;

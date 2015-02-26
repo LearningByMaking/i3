@@ -1,0 +1,6 @@
+diff compiler.logo ~/v2k/ulogo/logo/compiler.logo
+diff decompiler.logo ~/v2k/ulogo/logo/decompiler.logo
+diff onewire-packets.logo ~/v2k/ulogo/logo/onewire-packets.logo
+diff prims.logo ~/v2k/ulogo/logo/prims.logo
+diff uartcomms.logo ~/v2k/ulogo/logo/uartcomms.logo
+
