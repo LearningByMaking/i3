@@ -73,7 +73,7 @@ to rr
   make "silent true
   ifelse :run-ulogo
   [project :project-name]
-  [jlogo]
+  [jproject :project-name]
   print "|project reloaded|
   make "silent false
 end
@@ -133,12 +133,7 @@ end
 
 ; "|-geometry 600x400+1000+100|  example for value of :n
 to display :n
- if (:machine = 0) [ wait 10 redraw blindexec "|eog screen.png| ]             ; hp stream 11
- if (:machine = 1) [ wait 10 redraw wait 10                                   ; Mac OSX
-                     make "doit (se "|/usr/local/bin/xv | :n "| screen.png|) 
-;                    make "doit (se "|/usr/local/bin/xv -po | :n "| screen.png|)
-                     blindexec :doit
-;                    blindexec "|open -a Preview screen.png| ]
+   blindexec "(se "xv :n "screen.png ]
 end
 
 to clear-display
